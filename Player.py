@@ -1,4 +1,4 @@
-from TrainColor import TrainColor
+from Route import Route
 
 class Player:
 	score: int

@@ -18,9 +18,11 @@ class Board:
 
 		return list(filter(lambda c: c.start == city or c.end == city, self.connections))
 		
-	def distance(self, start: str, end: str) -> int: ...
+	def distance(self, start: str, end: str) -> int:
+		'''Returns the minimum distance between `start` and `end`, measured in train lengths.'''
 
-	def connected(self, start: str, end: str, player: int) -> bool: ...
+	def connected(self, start: str, end: str, player: int) -> bool:
+		'''Determines whether a route exists between `start` and `end` through connections claimed by `player`.'''
 
 USABoard = Board(
 	connections = [

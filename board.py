@@ -13,8 +13,11 @@ class Board:
 			cities.add(c.end)
 		self.cities = list(cities)
 
-	def neighbors(self, city: str) -> list[Connection]: ...
+	def neighbors(self, city: str) -> list[Connection]:
+		'''Returns all connections to/from `city`.'''
 
+		return list(filter(lambda c: c.start == city or c.end == city, self.connections))
+		
 	def distance(self, start: str, end: str) -> int: ...
 
 	def connected(self, start: str, end: str, player: int) -> bool: ...

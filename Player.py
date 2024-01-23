@@ -9,7 +9,7 @@ class Player:
 
 	def __init__(self):
 		self.score = 0
-		self.hand = [0 for i in TrainColor]
+		self.hand = [0 for _ in TrainColor]
 		self.trains = 45
 
 	def change_card(self, color: TrainColor, amount: int = 1):

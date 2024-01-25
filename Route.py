@@ -1,10 +1,15 @@
+from TrainColor import TrainColor
 
 class Route:
 	start: str
 	end: str
-	value: int
+	length: int
+	color: TrainColor
+	claimedBy: int | None # player number if claimed, None otherwise
 
-	def __init__(self, start: str, end: str, value: int):
+	def __init__(self, start: str, end: str, length: int, color: TrainColor):
 		self.start = start
 		self.end = end
-		self.value = value
+		self.length = length
+		self.color = color
+		self.claimedBy = None

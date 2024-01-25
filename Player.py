@@ -1,11 +1,11 @@
-from Route import Route
+from Ticket import Ticket
 from TrainColor import TrainColor
 
 class Player:
 	score: int
 	hand: list[int] # each index corresponds to one train color; it stores the amount of that color
 	trains: int # the number of plastic trains left
-	routes: list[Route] # the route cards currently held
+	tickets: list[Ticket] # the ticket cards currently held
 
 	def __init__(self):
 		self.score = 0

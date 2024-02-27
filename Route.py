@@ -13,3 +13,14 @@ class Route:
 		self.length = length
 		self.color = color
 		self.claimedBy = None
+
+	def __contains__(self, item: "str") -> bool:
+		return self.start == item or self.end == item
+
+	def other(self, start: str) -> str:
+		if self.start == start:
+			return self.end
+		elif self.end == start:
+			return self.start
+		else:
+			raise ValueError(f"{start} is not in route from {self.start} to {self.end}.")

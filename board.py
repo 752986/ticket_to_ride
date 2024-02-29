@@ -1,58 +1,66 @@
 from Route import Route
 from TrainColor import TrainColor
-from queue import Queue
 
 class Board:
-	cities: list[str]
+	cities: set[str]
 	routes: list[Route]
 	
 	def __init__(self, routes: list[Route]):
 		self.routes = routes
-		cities: set[str] = set()
+		self.cities = set()
 		for r in routes:
-			cities.add(r.start)
-			cities.add(r.end)
-		self.cities = list(cities)
+			self.cities.add(r.start)
+			self.cities.add(r.end)
 
 	def connections(self, city: str) -> list[Route]:
 		'''Returns all routes to/from `city`.'''
 
-		return list(filter(lambda r: r.start == city or r.end == city, self.routes))
+		return list(filter(lambda r: city in r, self.routes))
 	
 	def neighbors(self, city: str) -> list[str]:
 		'''Returns all cities with a direct route to `city`.'''
 
 		return list(map(lambda r: r.other(city), self.connections(city)))
 		
-	def distance(self, start: str, end: str) -> int:
-		'''Returns the minimum distance between `start` and `end`, measured in train lengths.'''
+	def distance(self, start: str, end: str, *, player: int | None = None) -> int | None:
+		'''Returns the minimum distance between `start` and `end`, measured in train lengths.
+		If `player` is specified, only considers routes claimed by that player.
+		If no path exists, returns `None`.
+
+		This functions serves a dual role, both for finding distances,
+		and for checking player-specific connectedness.
+		'''
+
+		# algorithm:
+		# 1. set the distance of the starting city to 0
+		# 2. for each city, set its distance to its neighbor's plus the connection length
+		# 3. the algorithm is finished once the distances stop changing
+
+		# this is definitely not elegant code, but it gives the right answer (I hope)
 
 		dists: dict[str, int] = {start: 0}
-		unvisited: Queue[str] = Queue()
-		visited: set[str] = set()
-		for n in self.neighbors(start):
-			unvisited.put(n)
+		prev_dists: dict[str, int] = {}
+		while dists != prev_dists: # repeat until no changes occur
+			prev_dists = dists.copy()
+			for city in self.cities:
+				# find routes connecting `city` to already-computed cities
+				toCheck = filter(lambda r: r.other(city) in dists, self.connections(city))
+				if player != None:
+					toCheck = filter(lambda r: r.claimedBy == player, toCheck)
+				toCheck = list(toCheck)
 
-		while not unvisited.empty():
-			city = unvisited.get()
-			# find the connections from the current city to already-checked cities
-			toCheck = filter(lambda c: c.other(city) in dists, self.connections(city))
-			# find the shortest total distance to the current city
-			dists[city] = min(map(lambda c: dists[c.other(city)] + c.length, toCheck))
+				if len(toCheck) != 0:
+					# find the shortest total distance to the current city
+					smallest = min(map(lambda r: dists[r.other(city)] + r.length, toCheck))
+					# keep current distance if it's already the smallest
+					if not (city in dists and dists[city] <= smallest):
+						dists[city] = smallest
 
-			if city == end: # early out
-				break
-
-			visited.add(city)
-			for n in self.neighbors(city):
-				if n not in visited:
-					unvisited.put(n)
-
-		return dists[end]
+		if end in dists:
+			return dists[end]
+		else:
+			return None
 			
-
-	def connected(self, start: str, end: str, player: int) -> bool:
-		'''Determines whether a path exists between `start` and `end` through routes claimed by `player`.'''
 
 USABoard = Board(
 	[

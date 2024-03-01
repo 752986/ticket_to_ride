@@ -18,6 +18,7 @@ class Route:
 		return self.start == item or self.end == item
 
 	def other(self, start: str) -> str:
+		'''Returns the city at the other side of the route from `start`.'''
 		if self.start == start:
 			return self.end
 		elif self.end == start:
@@ -26,5 +27,6 @@ class Route:
 			raise ValueError(f"{start} is not in route from {self.start} to {self.end}.")
 
 	def claim(self, player: int):
+		'''Claims the route for `player`.'''
 		self.claimedBy = player
 	

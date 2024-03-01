@@ -21,7 +21,34 @@ class Board:
 		'''Returns all cities with a direct route to `city`.'''
 
 		return list(map(lambda r: r.other(city), self.connections(city)))
+	
+	def find(
+		self, 
+		start: str, 
+		end: str, 
+		*, 
+		color: TrainColor | None = None, 
+		claimed: bool | None = None
+	) -> list[Route]:
+		'''Finds all routes between `start` and `end`, optionally limited by `color` and `claimed`.
+		The specified cities must be neighbors.
+		'''
+
+		if end not in self.neighbors(start):
+			raise ValueError(f"`start` and `end` must be neighbors. (\"{start}\" and \"{end}\" given)")
 		
+		result = filter(lambda r: start in r and end in r, self.routes)
+
+		if color != None:
+			result = filter(lambda r: r.color == color, result)
+
+		if claimed == True:
+			result = filter(lambda r: r.claimedBy != None, result)
+		elif claimed == False:
+			result = filter(lambda r: r.claimedBy == None, result)
+
+		return list(result)
+	
 	def distance(self, start: str, end: str, *, player: int | None = None) -> int | None:
 		'''Returns the minimum distance between `start` and `end`, measured in train lengths.
 		If `player` is specified, only considers routes claimed by that player.

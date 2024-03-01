@@ -24,3 +24,7 @@ class Route:
 			return self.start
 		else:
 			raise ValueError(f"{start} is not in route from {self.start} to {self.end}.")
+
+	def claim(self, player: int):
+		self.claimedBy = player
+	

@@ -12,7 +12,7 @@ class Player:
 		self.hand = [0 for _ in TrainColor]
 		self.trains = 45
 
-	def change_card(self, color: TrainColor, amount: int = 1):
+	def add_cards(self, color: TrainColor, amount: int = 1):
 		self.hand[color.value] += amount
 
 	def remove_train(self, amount: int = 1):

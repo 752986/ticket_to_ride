@@ -2,6 +2,7 @@ from Board import Board
 from TrainColor import TrainColor
 from Ticket import Ticket
 from Player import Player
+import random
 
 class GameState:
 	# board state, players, draw piles, APIs for player actions, 
@@ -15,6 +16,16 @@ class GameState:
 
 	def _draw(self, amount: int = 1) -> list[TrainColor]:
 		'''Draw the specified number of cards from the draw pile, reshuffling the discard pile if needed.'''
+		result: list[TrainColor] = []
+		for _ in range(amount):
+			if len(self.draw_pile) == 0:
+				self.draw_pile = self.discard_pile.copy()
+				self.discard_pile.clear()
+				random.shuffle(self.draw_pile)
+			result.insert(0, self.draw_pile.pop()) # inserting rather than appending to preserve card order, idk if this is needed
+
+	def _discard(self, color: TrainColor, amount: int = 1):
+		self.discard_pile.extend((color for _ in range(amount)))
 
 	def claim(self, start: str, end: str, color: TrainColor):
 		'''Claims the specified route for the current player, spending the correct amount of resources.'''

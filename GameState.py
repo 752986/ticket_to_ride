@@ -41,8 +41,34 @@ class GameState:
 	def current_player(self) -> Player:
 		return self.players[self.current_turn]
 
-	def claim(self, start: str, end: str, color: TrainColor):
-		'''Claims the specified route for the current player, spending the correct amount of resources.'''
+	def claim(self, start: str, end: str, route_color: TrainColor, play_color: TrainColor | None = None):
+		'''Claims the specified route for the current player, spending the correct amount of resources.
+		`color` is the color of the route to be claimed. If it's wild, `play_color` specifies the color of cards played.
+		'''
+		if route_color != TrainColor.Wild and play_color != None:
+			raise ValueError("`play_color` should not be set unless `route_color` is wild.")
+		elif route_color == TrainColor.Wild and play_color == None:
+			raise ValueError("`play_color` must be set when `route_color` is wild.")
+
+		if play_color == None:
+			play_color = route_color
+
+		player = self.current_player()
+
+		possible = self.board.find(start, end, color=route_color, claimed=False)
+		if len(possible) == 0:
+			raise GameState.InvalidAction(f"No unclaimed routes found between {start} and {end} with color {route_color.name}.")
+		
+		route = possible[0]
+
+		if player.query_cards(play_color) < route.length:
+			raise GameState.InvalidAction(f"The player doesn't have enough {play_color.name} cards to complete the route.")
+		elif player.trains < route.length:
+			raise GameState.InvalidAction(f"The player doesn't have enough trains left to complete the route.")
+		
+		route.claim(self.current_turn)
+		player.remove_cards(play_color, route.length)
+		player.remove_trains(route.length)
 	
 	def draw_blind(self, amount: int = 1):
 		'''Draws the specified number of cards from the draw pile into the current player's hand.'''

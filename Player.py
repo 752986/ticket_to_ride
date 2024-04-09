@@ -15,15 +15,22 @@ class Player:
 		self.trains = 45
 		self.tickets = []
 
+	def query_cards(self, color: TrainColor) -> int:
+		'''Get the number of cards in the player's hand of the specified color.'''
+		return self.hand[color.value]
+
 	def add_cards(self, color: TrainColor, amount: int = 1):
 		self.hand[color.value] += amount
 
-	def remove_train(self, amount: int = 1):
+	def remove_cards(self, color: TrainColor, amount: int):
+		self.add_cards(color, -amount)
+
+	def remove_trains(self, amount: int = 1):
 		self.trains -= amount
 
 	def change_score(self, amount: int):
 		self.score += amount
-
+	
 	def turn(self):
 		pass
 	

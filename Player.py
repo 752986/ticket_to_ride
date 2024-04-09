@@ -18,6 +18,9 @@ class Player:
 	def query_cards(self, color: TrainColor) -> int:
 		'''Get the number of cards in the player's hand of the specified color.'''
 		return self.hand[color.value]
+	
+	def add_ticket(self, ticket: Ticket):
+		self.tickets.append(ticket)
 
 	def add_cards(self, color: TrainColor, amount: int = 1):
 		self.hand[color.value] += amount

@@ -45,6 +45,7 @@ class GameState:
 		'''Claims the specified route for the current player, spending the correct amount of resources.
 		`color` is the color of the route to be claimed. If it's wild, `play_color` specifies the color of cards played.
 		'''
+
 		if route_color != TrainColor.Wild and play_color != None:
 			raise ValueError("`play_color` should not be set unless `route_color` is wild.")
 		elif route_color == TrainColor.Wild and play_color == None:
@@ -100,3 +101,20 @@ class GameState:
 			result.append(self.ticket_pile.pop())
 
 		return result
+	
+	def decide_tickets(self, tickets: list[Ticket], keep: list[bool]):
+		'''For each ticket in `tickets`, either adds it to the current player's hand, or puts it back into the draw pile, 
+		depending on whether `keep` at the same index is true or false, respectively.
+		'''
+
+		if len(tickets) != len(keep):
+			return ValueError("The lengths of `tickets` and `keep` must match.")
+		
+		player = self.current_player()
+
+		for ticket, should_keep in zip(tickets, keep):
+			if should_keep:
+				player.add_ticket(ticket)
+			else:
+				self.ticket_pile.insert(random.randint(0, len(self.ticket_pile) - 1), ticket) # replace it at a random position
+		

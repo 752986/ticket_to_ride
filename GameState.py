@@ -70,6 +70,7 @@ class GameState:
 		route.claim(self.current_turn)
 		player.remove_cards(play_color, route.length)
 		player.remove_trains(route.length)
+		player.change_score(route.value())
 	
 	def draw_blind(self, amount: int = 1):
 		'''Draws the specified number of cards from the draw pile into the current player's hand.'''

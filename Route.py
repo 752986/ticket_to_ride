@@ -16,6 +16,13 @@ class Route:
 
 	def __contains__(self, item: "str") -> bool:
 		return self.start == item or self.end == item
+	
+	def value(self) -> int:
+		'''Returns the point value of the route, based on its length.'''
+		result = 1
+		for i in range(self.length):
+			result += i
+		return result
 
 	def other(self, start: str) -> str:
 		'''Returns the city at the other side of the route from `start`.'''

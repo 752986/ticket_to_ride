@@ -67,6 +67,8 @@ def main():
 
 	timer = 0
 
+	held = ""
+
 	# main loop:
 	running = True
 	while running:
@@ -77,8 +79,15 @@ def main():
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				running = False
+			elif event.type == pygame.MOUSEBUTTONDOWN:
+				held = sorted(USABoard.cities, key=lambda c: Vector2(pygame.mouse.get_pos()).distance_to(positions[c]))[0]
+			elif event.type == pygame.MOUSEBUTTONUP:
+				held = ""
 
 		# update:
+		if held != "":
+			positions[held] = Vector2(pygame.mouse.get_pos())
+
 		if timer >= RELAX_FREQUENCY:
 			timer = 0
 			positions = relaxGraph(USABoard, positions, 1, 0.1, SCALE)

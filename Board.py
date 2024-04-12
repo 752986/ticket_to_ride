@@ -49,10 +49,10 @@ class Board:
 
 		return list(result)
 	
-	def distance(self, start: str, end: str, *, player: int | None = None) -> int | None:
-		'''Returns the minimum distance between `start` and `end`, measured in train lengths.
+	def distances(self, start: str, *, player: int | None = None) -> dict[str, int]:
+		'''Returns the minimum distance from `start` to all other cities, measured in train lengths.
 		If `player` is specified, only considers routes claimed by that player.
-		If no path exists, returns `None`.
+		Cities which could not be reached will not be present in the returned dict.
 
 		This functions serves a dual role, both for finding distances,
 		and for checking player-specific connectedness.
@@ -83,11 +83,41 @@ class Board:
 					if not (city in dists and dists[city] <= smallest):
 						dists[city] = smallest
 
+		return dists
+	
+	def distance(self, start: str, end: str, *, player: int | None = None) -> int | None:
+		'''Returns the minimum distance between `start` and `end`, measured in train lengths.
+		If `player` is specified, only considers routes claimed by that player.
+		If no path exists, returns `None`.
+
+		This functions serves a dual role, both for finding distances,
+		and for checking player-specific connectedness.
+		'''
+
+		dists = self.distances(start, player=player)
+
 		if end in dists:
 			return dists[end]
 		else:
 			return None
-			
+		
+	def path(self, start: str, end: str, *, player: int | None = None) -> list[str] | None:
+		'''Returns the shortest path from `start` to `end, measured in train lengths.
+		If `player` is specified, only considers routes claimed by that player.
+		If no path exists, returns `None`.'''
+
+		dists = self.distances(end, player=player)
+
+		if not (start in dists and end in dists):
+			return None
+
+		result: list[str] = [start]
+
+		while end not in result:
+			result.append(min(self.neighbors(result[-1]), key=lambda n: dists[n]))
+
+		return result
+				
 
 USABoard = Board(
 	[

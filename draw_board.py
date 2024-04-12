@@ -19,7 +19,7 @@ SCREEN_SIZE = Vector2(1200, 800)
 RELAX_FREQUENCY = 0 # seconds between iterations # set to 0 for 1 iteration per frame
 
 SCALE = 20
-SIZE = 800
+KEEP_CENTERED = True
 
 
 # pygame init:
@@ -30,9 +30,6 @@ font = pygame.font.SysFont(pygame.font.get_default_font(), 16)
 
 
 # definitions:
-def smoothMax(x: float) -> float:
-	return (1 - 1 / (1 + abs(x))) * (1 if x >= 0 else -1)
-
 def relaxGraph(board: Board, positions: dict[str, Vector2], pull_factor: float, push_factor: float, scale: float) -> dict[str, Vector2]:
 	'''Iteratively moves vertices closer to their proper position based on edge lengths.'''
 
@@ -67,7 +64,14 @@ def main():
 
 	timer = 0
 
+	# currently dragged node
 	held = ""
+
+	# shortest path display
+	choosing_start = False
+	start = ""
+	end = ""
+	path: list[str] = []
 
 	# main loop:
 	running = True
@@ -80,9 +84,22 @@ def main():
 			if event.type == pygame.QUIT:
 				running = False
 			elif event.type == pygame.MOUSEBUTTONDOWN:
-				held = sorted(USABoard.cities, key=lambda c: Vector2(pygame.mouse.get_pos()).distance_to(positions[c]))[0]
+				closest_city = sorted(USABoard.cities, key=lambda c: Vector2(pygame.mouse.get_pos()).distance_to(positions[c]))[0]
+				if pygame.mouse.get_pressed()[0]:
+					held = closest_city
+				if pygame.mouse.get_pressed()[2]:
+					if choosing_start:
+						start = closest_city
+					else:
+						end = closest_city
+					choosing_start = not choosing_start
+
+					if start != "" and end != "":
+						result = USABoard.path(start, end)
+						path = result if result != None else []
 			elif event.type == pygame.MOUSEBUTTONUP:
-				held = ""
+				if not pygame.mouse.get_pressed()[0]:
+					held = ""
 
 		# update:
 		if held != "":
@@ -92,13 +109,14 @@ def main():
 			timer = 0
 			positions = relaxGraph(USABoard, positions, 1, 0.1, SCALE)
 
-			avg_position = Vector2(0, 0)
-			for p in positions.values():
-				avg_position += p
-			avg_position /= len(positions)
-			avg_position -= SCREEN_SIZE / 2
-			for p in positions.values():
-				p -= avg_position
+			if KEEP_CENTERED:
+				avg_position = Vector2(0, 0)
+				for p in positions.values():
+					avg_position += p
+				avg_position /= len(positions)
+				avg_position -= SCREEN_SIZE / 2
+				for p in positions.values():
+					p -= avg_position
 
 		# draw:
 		screen.fill("#111111")
@@ -117,6 +135,10 @@ def main():
 			text = font.render(child, True, "#ffffff")
 
 			screen.blit(text, p + Vector2(4, 4))
+
+		if len(path) > 1:
+			for i in range(len(path) - 1):
+				pygame.draw.aaline(screen, "#93ffac", positions[path[i]], positions[path[i + 1]])
 
 		pygame.display.flip()
 

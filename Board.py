@@ -114,7 +114,14 @@ class Board:
 		result: list[str] = [start]
 
 		while end not in result:
-			result.append(min(self.neighbors(result[-1]), key=lambda n: dists[n]))
+			# find city with smallest distance to target plus distance to current city
+			current_city = result[-1]
+			result.append(
+				min(
+					self.connections(current_city), 
+					key=lambda r: dists[r.other(current_city)] + r.length
+				).other(current_city)
+			)
 
 		return result
 				

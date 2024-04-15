@@ -68,10 +68,11 @@ def main():
 	held = ""
 
 	# shortest path display
-	choosing_start = False
+	choosing_start = True
 	start = ""
 	end = ""
 	path: list[str] = []
+	dists: dict[str, int] = {}
 
 	# main loop:
 	running = True
@@ -88,18 +89,32 @@ def main():
 				if pygame.mouse.get_pressed()[0]:
 					held = closest_city
 				if pygame.mouse.get_pressed()[2]:
-					if choosing_start:
-						start = closest_city
+					if end == "":
+						if choosing_start:
+							start = closest_city
+						else:
+							end = closest_city
+						choosing_start = not choosing_start
 					else:
+						start = end
 						end = closest_city
-					choosing_start = not choosing_start
 
-					if start != "" and end != "":
-						result = USABoard.path(start, end)
-						path = result if result != None else []
+					if start != "":
+						dists = USABoard.distances(start)
+						if end != "":
+							result = USABoard.path(start, end)
+							path = result if result != None else []
 			elif event.type == pygame.MOUSEBUTTONUP:
 				if not pygame.mouse.get_pressed()[0]:
 					held = ""
+			elif event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_ESCAPE:
+					# reset distance elements
+					choosing_start = True
+					start = ""
+					end = ""
+					path = []
+					dists = {}
 
 		# update:
 		if held != "":
@@ -130,15 +145,24 @@ def main():
 			screen.blit(text, (positions[r.start] + positions[r.end]) / 2 + Vector2(0, -16))
 
 		for child, p in positions.items():
+			if child == start:
+				pygame.draw.circle(screen, "#00ac71", p, 4)
+			elif child == end:
+				pygame.draw.circle(screen, "#ff3d2b", p, 4)
 			pygame.draw.circle(screen, "#ffffff", p, 2)
 
 			text = font.render(child, True, "#ffffff")
 
 			screen.blit(text, p + Vector2(4, 4))
 
+			if child in dists:
+				dist_text = font.render(str(dists[child]), True, "#87ffc3")
+
+				screen.blit(dist_text, p + Vector2(4, -8))
+
 		if len(path) > 1:
 			for i in range(len(path) - 1):
-				pygame.draw.aaline(screen, "#93ffac", positions[path[i]], positions[path[i + 1]])
+				pygame.draw.aaline(screen, "#00ac71", positions[path[i]], positions[path[i + 1]])
 
 		pygame.display.flip()
 

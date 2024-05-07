@@ -41,9 +41,10 @@ class GameState:
 	def current_player(self) -> Player:
 		return self.players[self.current_turn]
 
-	def claim(self, start: str, end: str, route_color: TrainColor, play_color: TrainColor | None = None):
+	def claim(self, start: str, end: str, route_color: TrainColor, play_color: TrainColor | None = None, num_wild: int = 0):
 		'''Claims the specified route for the current player, spending the correct amount of resources.
 		`color` is the color of the route to be claimed. If it's wild, `play_color` specifies the color of cards played.
+		`play_wild` specifies the number of wild cards to be used (defaults to 0).
 		'''
 
 		if route_color != TrainColor.Wild and play_color != None:
@@ -62,13 +63,22 @@ class GameState:
 		
 		route = possible[0]
 
-		if player.query_cards(play_color) < route.length:
+		num_play = route.length - num_wild
+
+		if num_play < 0 or num_wild < 0:
+			raise ValueError(f"Invalid number of wild cards ({num_wild} on route length {route.length}).")
+
+		if player.query_cards(TrainColor.Wild) < num_wild:
+			raise GameState.InvalidAction(f"The player doesn't have enough wild cards to complete the route.")
+		if player.query_cards(play_color) < num_play:
 			raise GameState.InvalidAction(f"The player doesn't have enough {play_color.name} cards to complete the route.")
 		elif player.trains < route.length:
 			raise GameState.InvalidAction(f"The player doesn't have enough trains left to complete the route.")
 		
 		route.claim(self.current_turn)
-		player.remove_cards(play_color, route.length)
+
+		player.remove_cards(play_color, num_play)
+		player.remove_cards(TrainColor.Wild, num_wild)
 		player.remove_trains(route.length)
 		player.change_score(route.value())
 	

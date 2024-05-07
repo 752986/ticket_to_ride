@@ -18,7 +18,10 @@ class Route:
 		return self.start == item or self.end == item
 	
 	def value(self) -> int:
-		'''Returns the point value of the route, based on its length.'''
+		'''Returns the point value of the route, based on its length.
+		
+		This is implemented as an algorithm rather than a lookup table, so it can handle lengths above 6.
+		'''
 		result = 1
 		for i in range(self.length):
 			result += i

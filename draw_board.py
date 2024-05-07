@@ -137,7 +137,7 @@ def main():
 		screen.fill("#111111")
 
 		for r in USABoard.routes:
-			color = "#ff8844"
+			color = "#ff8535"
 			pygame.draw.aaline(screen, color, positions[r.start], positions[r.end])
 
 			text = font.render(str(r.length), True, color)
@@ -146,9 +146,9 @@ def main():
 
 		for child, p in positions.items():
 			if child == start:
-				pygame.draw.circle(screen, "#00ac71", p, 4)
+				pygame.draw.circle(screen, "#008d5c", p, 4)
 			elif child == end:
-				pygame.draw.circle(screen, "#ff3d2b", p, 4)
+				pygame.draw.circle(screen, "#dd1100", p, 4)
 			pygame.draw.circle(screen, "#ffffff", p, 2)
 
 			text = font.render(child, True, "#ffffff")

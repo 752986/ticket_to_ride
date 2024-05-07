@@ -117,5 +117,5 @@ class GameState:
 			if should_keep:
 				player.add_ticket(ticket)
 			else:
-				self.ticket_pile.insert(random.randint(0, len(self.ticket_pile) - 1), ticket) # replace it at a random position
+				self.ticket_pile.insert(random.randint(0, len(self.ticket_pile)), ticket) # replace it at a random position
 		

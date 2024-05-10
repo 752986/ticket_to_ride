@@ -47,10 +47,17 @@ class GameState:
 
 		Returns a list where each index corresponds to a TrainColor. If the player can't use a color
 		to complete the route, that index will contain `None`. Otherwise, it will contain the minimum
-		number of supplementary wild cards that are needed (0 if it can be completed using solid colors alone).
+		number of supplementary wild cards that are needed (`0` if it can be completed using solid colors alone).
 
-		Note that even if the color matches, an index may still be `None` if the player doesn't have
-		enough resources.
+		To summarize, for each slot in the returned list:
+		- `None` means that the current player can't fulfill `route` with their current resources.
+		- `0` means that they can fulfill the route using just cards of that slot's color.
+		- Another value means that they can fulfill the route, but they would need to use that many wild cards.
+
+		Note that:
+		- even if the color matches, an index may still be `None` if the player doesn't have enough wild cards.
+		- this function does not take into account the player's remaining supply of plastic trains.
+		- the result in index 8 (wild cards) will always be `None` or `0`.
 		'''
 
 		# thinking:
@@ -62,16 +69,16 @@ class GameState:
 
 		result: list[int | None] = [None for _ in TrainColor]
 
-		if player.trains < route.length:
-			return result # can't play if you don't have the trains for it
-
 		for color in TrainColor:
-			if route.color != TrainColor.Wild and route.color != color:
+			if route.color != TrainColor.Wild and color != TrainColor.Wild and route.color != color:
 				continue
 
 			if player.query_cards(color) >= route.length:
 				result[color.value] = 0
-			elif color != TrainColor.Wild and player.query_cards(color) + player.query_cards(TrainColor.Wild) >= route.length:
+			elif (
+				color != TrainColor.Wild and 
+				player.query_cards(color) + player.query_cards(TrainColor.Wild) >= route.length
+			):
 				result[color.value] = route.length - (player.query_cards(color))
 
 		return result
@@ -82,26 +89,47 @@ class GameState:
 		`play_wild` specifies the number of wild cards to be used (defaults to 0).
 		'''
 
+		# argument validation
 		if route_color != TrainColor.Wild and play_color != None:
 			raise ValueError("`play_color` should not be set unless `route_color` is wild.")
 		elif route_color == TrainColor.Wild and play_color == None:
 			raise ValueError("`play_color` must be set when `route_color` is wild.")
 
+		# use route color if not on a gray route
 		if play_color == None:
 			play_color = route_color
 
 		player = self.current_player()
 
+		# find matching free route
 		possible = self.board.find(start, end, color=route_color, claimed=False)
 		if len(possible) == 0:
 			raise GameState.InvalidAction(f"No unclaimed routes found between {start} and {end} with color {route_color.name}.")
 		
 		route = possible[0]
 
-		# TODO: use `can_claim` here to validate player resources
-
+		# determine number of color and wild cards being used
 		num_color = route.length - num_wild
+
+		# ensure not too many wild cards are being used
+		if num_color < 0 or num_wild < 0:
+			raise ValueError(f"Invalid number of wild cards ({num_wild} on route length {route.length}).")
+
+		can_play = self.can_claim(route)[play_color.value]
+
+		# if `can_play` is None there is no way to complete the route with this color 
+		if can_play == None:
+			raise GameState.InvalidAction(f"The route can't be claimed using {play_color.name}.")
 		
+		# past this point we know that the player has enough to claim the route, as long as enough wild cards are used
+		if num_wild < can_play:
+			raise GameState.InvalidAction(f"At least {can_play} wild cards must be used to claim this route using {play_color.name}.")
+		
+		# and past this point we know that that is indeed the case, so the last thing to check is plastic trains
+		if player.trains < route.length:
+			raise GameState.InvalidAction("The player doesn't have enough trains left to complete the route.")
+
+		# put the claim into effect
 		route.claim(self.current_turn)
 
 		player.remove_cards(play_color, num_color)
